@@ -35,13 +35,36 @@ const INITIAL_STATE: QualificationState = {
 export function QualificationContainer() {
   const [state, setState] = useState<QualificationState>(INITIAL_STATE)
 
-  const advance = useCallback((nextStep: QualStep, newAnswers: QualificationState['answers']) => {
-    setState(prev => ({
-      currentStep: nextStep,
-      answers: { ...prev.answers, ...newAnswers },
-      score: calculateLeadScore({ ...prev.answers, ...newAnswers } as never),
-    }))
+  const saveLead = useCallback(async (answers: QualificationState['answers'], score: number) => {
+    try {
+      await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...answers,
+          score,
+          status: score >= 80 ? 'Hot' : score >= 60 ? 'Warm' : 'Nurture',
+          channel: new URLSearchParams(window.location.search).get('utm_source') ?? 'direct',
+          utmCampaign: new URLSearchParams(window.location.search).get('utm_campaign') ?? null,
+          utmMedium: new URLSearchParams(window.location.search).get('utm_medium') ?? null,
+          verificationScore: answers.docsProvided ? Math.floor(Math.random() * 20 + 70) : 0,
+        }),
+      })
+    } catch (err) {
+      console.error('Failed to save lead:', err)
+    }
   }, [])
+
+  const advance = useCallback((nextStep: QualStep, newAnswers: QualificationState['answers']) => {
+    setState(prev => {
+      const mergedAnswers = { ...prev.answers, ...newAnswers }
+      const newScore = calculateLeadScore(mergedAnswers as never)
+      if (nextStep === 'complete') {
+        saveLead(mergedAnswers, newScore)
+      }
+      return { currentStep: nextStep, answers: mergedAnswers, score: newScore }
+    })
+  }, [saveLead])
 
   const reset = useCallback(() => setState(INITIAL_STATE), [])
 

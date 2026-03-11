@@ -2,9 +2,9 @@
 /**
  * BuilderDashboard
  * Full builder analytics view: KPIs, lead queue, CRM detail, and charts.
- * Manages selected lead state.
+ * Fetches real leads from Supabase, falls back to mock data.
  */
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Card, CardBody } from '@/components/ui/Card'
 import { LeadsTable } from './LeadsTable'
@@ -12,6 +12,7 @@ import { LeadDetailPanel } from './LeadDetailPanel'
 import { ChannelPerformanceChart } from './ChannelPerformanceChart'
 import { ConversionFunnelChart } from './ConversionFunnelChart'
 import { MOCK_LEADS } from '@/data'
+import type { Lead } from '@/lib/types'
 
 // ─── KPI cards ────────────────────────────────────────────────────────────────
 const KPIS = [
@@ -22,7 +23,38 @@ const KPIS = [
 ]
 
 export function BuilderDashboard() {
+  const [leads, setLeads] = useState<Lead[]>(MOCK_LEADS)
   const [selectedLead, setSelectedLead] = useState(MOCK_LEADS[0])
+
+  useEffect(() => {
+    fetch('/api/leads')
+      .then(r => r.json())
+      .then(({ leads: realLeads }) => {
+        if (realLeads && realLeads.length > 0) {
+          const mapped: Lead[] = realLeads.map((l: Record<string, unknown>, i: number) => ({
+            id: `PQ-${String(1000 + i).padStart(4, '0')}`,
+            name: `Lead ${i + 1}`,
+            score: Number(l.lead_score) || 0,
+            status: String(l.status || 'Warm') as Lead['status'],
+            channel: String(l.channel || 'direct'),
+            intent: Boolean(l.intent),
+            timeline: String(l.timeline || ''),
+            budget: String(l.budget || ''),
+            financeStatus: String(l.finance_status || 'In progress') as Lead['financeStatus'],
+            verificationScore: Number(l.verification_score) || 0,
+            location: String(l.location || 'North Brisbane') as Lead['location'],
+            buildType: String(l.build_type || 'House & Land package') as Lead['buildType'],
+            tags: [],
+            utmCampaign: String(l.utm_campaign || ''),
+            utmMedium: String(l.utm_medium || ''),
+            createdAt: String(l.created_at || new Date().toISOString()),
+          }))
+          setLeads(mapped)
+          setSelectedLead(mapped[0])
+        }
+      })
+      .catch(() => {/* keep mock data on error */})
+  }, [])
 
   return (
     <section className="max-w-6xl mx-auto px-6 py-16">
@@ -61,7 +93,7 @@ export function BuilderDashboard() {
       {/* Lead queue + CRM panel */}
       <div className="grid grid-cols-[1fr,300px] gap-5 mb-8">
         <LeadsTable
-          leads={MOCK_LEADS}
+          leads={leads}
           selectedId={selectedLead.id}
           onSelect={setSelectedLead}
         />
