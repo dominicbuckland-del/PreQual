@@ -69,6 +69,7 @@ export type QualStep =
   | 'verification'
   | 'location'
   | 'buildType'
+  | 'contact'
   | 'complete'
   | 'filtered'
 
@@ -82,6 +83,9 @@ export interface QualificationState {
     docsProvided?: boolean
     location?: SEQRegion
     buildType?: BuildType
+    name?: string
+    email?: string
+    phone?: string
   }
   score: number                // Running score as steps complete
 }

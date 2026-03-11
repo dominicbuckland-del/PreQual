@@ -11,6 +11,9 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
 
     const lead = {
+      name: body.name ?? null,
+      email: body.email ?? null,
+      phone: body.phone ?? null,
       intent: body.intent ?? false,
       timeline: body.timeline ?? null,
       budget: body.budget ?? null,

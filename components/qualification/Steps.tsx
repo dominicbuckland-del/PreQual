@@ -213,3 +213,56 @@ export function StepBuildType({ onAnswer }: { onAnswer: (val: BuildType) => void
     </StepWrapper>
   )
 }
+
+// ─── Step: Contact details ────────────────────────────────────────────────────
+export function StepContact({ onAnswer }: {
+  onAnswer: (val: { name: string; email: string; phone: string }) => void
+}) {
+  const [name, setName] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
+  const valid = name.trim().length > 1 && email.includes('@') && phone.trim().length > 7
+
+  return (
+    <StepWrapper>
+      <StepHeading>Last step — where should we send your match?</StepHeading>
+      <p className="text-sm text-white/45 -mt-2">
+        A preQual consultant will be in touch within the hour with your matched builders.
+      </p>
+      <div className="flex flex-col gap-3">
+        <InputField
+          label="Full name"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          placeholder="Your name"
+        />
+        <InputField
+          label="Email"
+          type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          placeholder="you@example.com"
+        />
+        <InputField
+          label="Mobile"
+          type="tel"
+          value={phone}
+          onChange={e => setPhone(e.target.value)}
+          placeholder="04xx xxx xxx"
+        />
+      </div>
+      <p className="text-xs text-white/25">
+        Your details are never sold or shared with third parties.
+      </p>
+      <Button
+        variant="lime"
+        size="lg"
+        className="w-full"
+        disabled={!valid}
+        onClick={() => onAnswer({ name: name.trim(), email: email.trim(), phone: phone.trim() })}
+      >
+        Get my builder matches →
+      </Button>
+    </StepWrapper>
+  )
+}

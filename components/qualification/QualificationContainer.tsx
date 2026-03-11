@@ -10,20 +10,20 @@ import { ProgressIndicator } from './ProgressIndicator'
 import { ProgressBar } from '@/components/ui/ProgressBar'
 import {
   StepIntent, StepTimeline, StepBudget, StepFinance,
-  StepVerification, StepLocation, StepBuildType,
+  StepVerification, StepLocation, StepBuildType, StepContact,
 } from './Steps'
 import type { QualificationState, QualStep, FinanceStatus, SEQRegion, BuildType } from '@/lib/types'
 import { calculateLeadScore } from '@/lib/utils'
 import { QUAL_STEP_META } from '@/data'
 
 const STEP_ORDER: QualStep[] = [
-  'intent', 'timeline', 'budget', 'finance', 'verification', 'location', 'buildType', 'complete',
+  'intent', 'timeline', 'budget', 'finance', 'verification', 'location', 'buildType', 'contact', 'complete',
 ]
 
 const STEP_LABELS: Record<QualStep, string> = {
   intent: 'Intent Signal', timeline: 'Timeline', budget: 'Budget Range',
   finance: 'Finance Status', verification: 'Verification', location: 'Location',
-  buildType: 'Build Type', complete: 'Complete', filtered: 'Filtered',
+  buildType: 'Build Type', contact: 'Your Details', complete: 'Complete', filtered: 'Filtered',
 }
 
 const INITIAL_STATE: QualificationState = {
@@ -62,6 +62,7 @@ export function QualificationContainer() {
       if (nextStep === 'complete') {
         saveLead(mergedAnswers, newScore)
       }
+
       return { currentStep: nextStep, answers: mergedAnswers, score: newScore }
     })
   }, [saveLead])
@@ -145,7 +146,11 @@ export function QualificationContainer() {
               )}
               {/* Build type */}
               {state.currentStep === 'buildType' && (
-                <StepBuildType key="buildType" onAnswer={v => advance('complete', { buildType: v as BuildType })} />
+                <StepBuildType key="buildType" onAnswer={v => advance('contact', { buildType: v as BuildType })} />
+              )}
+              {/* Contact */}
+              {state.currentStep === 'contact' && (
+                <StepContact key="contact" onAnswer={v => advance('complete', v)} />
               )}
 
               {/* Filtered out */}
